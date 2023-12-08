@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet-control-layers/dist/leaflet.control-layers.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.gridlayer.googlemutant/dist/Leaflet.GoogleMutant.css" />
+        <link rel="stylesheet" href="css/L.Control.Zoomslider.css" /> 
+        <link rel="stylesheet" href="css/L.Control.MousePosition.css" /> 
+        <link rel="stylesheet" href="css/leaflet-search.css" />
+		<title>Mapa miejsc niebezpiecznych we Wrocławiu</title>
+
+		
+    </head>
+    <body style="background-color: #FFC0CB">
+	    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+		</style>
+        <div style="height: 5%"><center><h1>Mapa miejsc niebezpiecznych we Wrocławiu</h1></div>
+		
+		<!--<h1><center>Mapa miejsc niebezpiecznych we Wrocławiu</center></h1>
+		<p>
+		-->
+        <div id="map" style="height: 90%">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/multi-style-layer.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="data/WROCLAW_1.js"></script>
+        <script src="data/CLC_2.js"></script>
+        <script src="data/OSIEDLA_3.js"></script>
+        <script src="data/TORY_4.js"></script>
+        <script src="data/RUCH_PIESZY_5.js"></script>
+        <script src="data/DROGA_6.js"></script>
+        <script src="data/miejscaniebezpieczne_7.js"></script>
+		<script src="https://unpkg.com/leaflet-minimap/dist/Control.MiniMap.min.js"></script> 
+        <script src="https://unpkg.com/leaflet.gridlayer.googlemutant/dist/Leaflet.GoogleMutant.js"></script>
+        <script src="js/L.Control.Zoomslider.js"></script>
+        <script src="js/L.Control.MousePosition.js"></script> 
+        <script src="js/leaflet-search.js"></script> 
+        <script>
+        var map = L.map('map', {
+            zoomControl:true, maxZoom:28, minZoom:1
+        }).fitBounds([[51.033746397810326,16.784937647372875],[51.23252201378544,17.197845199866094]]);
+        
+		setTimeout(function(){
+          map.addControl(new L.Control.Zoomslider());
+      }, 2000);
+      
+       
+        var miniMap = new L.Control.MiniMap(
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'),
+            { toggleDisplay: true } 
+        ).addTo(map);
+		
+
+
+		var abstract = new L.Control();
+            abstract.onAdd = function (map) {
+                this._div = L.DomUtil.create('div', 'info');
+                this.update();
+                return this._div;
+            };
+            abstract.update = function () {
+                this._div.innerHTML = '<p>Mapa przedstawia miejsca, które są postrzegane jako niebezpieczne przez mieszkańców Wrocławia. <br>Miejsca zostały zidentyfikowane w wyniku analizy przesłanych zgłoszeń za pośrednictwem geoankiety.</p>';
+            };
+            abstract.addTo(map);
+        
+		
+        L.control.scale().addTo(map);
+ 
+        L.control.mousePosition().addTo(map);
+		
+		var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        function pop_WROCLAW_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['KOD10K'] !== null ? autolinker.link(feature.properties['KOD10K'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NAZWA'] !== null ? autolinker.link(feature.properties['NAZWA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_WROCLAW_1_0() {
+            return {
+                pane: 'pane_WROCLAW_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(152,125,183,0.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_WROCLAW_1');
+        map.getPane('pane_WROCLAW_1').style.zIndex = 401;
+        map.getPane('pane_WROCLAW_1').style['mix-blend-mode'] = 'normal';
+        var layer_WROCLAW_1 = new L.geoJson(json_WROCLAW_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_WROCLAW_1',
+            layerName: 'layer_WROCLAW_1',
+            pane: 'pane_WROCLAW_1',
+            onEachFeature: pop_WROCLAW_1,
+            style: style_WROCLAW_1_0,
+        });
+        bounds_group.addLayer(layer_WROCLAW_1);
+        map.addLayer(layer_WROCLAW_1);
+        function pop_CLC_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CODE_18'] !== null ? autolinker.link(feature.properties['CODE_18'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_CLC_2_0(feature) {
+            switch(String(feature.properties['CODE_18'])) {
+                case '111':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(214,2,48,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '112':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,6,10,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '121':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(213,10,228,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '122':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(198,18,30,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '123':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(213,172,161,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '124':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(243,189,220,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '133':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,0,213,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '141':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,70,227,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '142':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,200,239,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '211':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(207,243,99,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '222':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,104,28,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '231':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(171,201,51,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '242':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(242,208,29,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '243':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(204,174,25,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '311':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(4,255,9,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '313':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(4,217,27,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '312':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,121,22,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '324':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(95,217,9,0.4)',
+                interactive: true,
+            }
+                    break;
+                case '511':
+                    return {
+                pane: 'pane_CLC_2',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.4)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(18,197,213,0.4)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_CLC_2');
+        map.getPane('pane_CLC_2').style.zIndex = 402;
+        map.getPane('pane_CLC_2').style['mix-blend-mode'] = 'normal';
+        var layer_CLC_2 = new L.geoJson(json_CLC_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_CLC_2',
+            layerName: 'layer_CLC_2',
+            pane: 'pane_CLC_2',
+            onEachFeature: pop_CLC_2,
+            style: style_CLC_2_0,
+        });
+        bounds_group.addLayer(layer_CLC_2);
+        map.addLayer(layer_CLC_2);
+        function pop_OSIEDLA_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['OBJECTID'] !== null ? autolinker.link(feature.properties['OBJECTID'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['NROSIEDLA'] !== null ? autolinker.link(feature.properties['NROSIEDLA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">NAZWAOSIED</th>\
+                        <td>' + (feature.properties['NAZWAOSIED'] !== null ? autolinker.link(feature.properties['NAZWAOSIED'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['DATA'] !== null ? autolinker.link(feature.properties['DATA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SHAPE_AREA'] !== null ? autolinker.link(feature.properties['SHAPE_AREA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['SHAPE_LEN'] !== null ? autolinker.link(feature.properties['SHAPE_LEN'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_OSIEDLA_3_0() {
+            return {
+                pane: 'pane_OSIEDLA_3',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(225,89,137,0.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_OSIEDLA_3');
+        map.getPane('pane_OSIEDLA_3').style.zIndex = 403;
+        map.getPane('pane_OSIEDLA_3').style['mix-blend-mode'] = 'normal';
+        var layer_OSIEDLA_3 = new L.geoJson(json_OSIEDLA_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_OSIEDLA_3',
+            layerName: 'layer_OSIEDLA_3',
+            pane: 'pane_OSIEDLA_3',
+            onEachFeature: pop_OSIEDLA_3,
+            style: style_OSIEDLA_3_0,
+        });
+        bounds_group.addLayer(layer_OSIEDLA_3);
+        map.addLayer(layer_OSIEDLA_3);
+        function pop_TORY_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['KOD10K'] !== null ? autolinker.link(feature.properties['KOD10K'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['W1_NAZWA'] !== null ? autolinker.link(feature.properties['W1_NAZWA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['W2_NAZWA'] !== null ? autolinker.link(feature.properties['W2_NAZWA'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_TORY_4_0() {
+            return {
+                pane: 'pane_TORY_4',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'round',
+                lineJoin: 'round',
+                weight: 1.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        function style_TORY_4_1() {
+            return {
+                pane: 'pane_TORY_4',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_TORY_4');
+        map.getPane('pane_TORY_4').style.zIndex = 404;
+        map.getPane('pane_TORY_4').style['mix-blend-mode'] = 'normal';
+        var layer_TORY_4 = new L.geoJson.multiStyle(json_TORY_4, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_TORY_4',
+            layerName: 'layer_TORY_4',
+            pane: 'pane_TORY_4',
+            onEachFeature: pop_TORY_4,
+            styles: [style_TORY_4_0,style_TORY_4_1,]
+        });
+        bounds_group.addLayer(layer_TORY_4);
+        map.addLayer(layer_TORY_4);
+        function pop_RUCH_PIESZY_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['KOD10K'] !== null ? autolinker.link(feature.properties['KOD10K'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['KLRUCHPIES'] !== null ? autolinker.link(feature.properties['KLRUCHPIES'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['RUCHROWER'] !== null ? autolinker.link(feature.properties['RUCHROWER'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['UL_NAZWA1'] !== null ? autolinker.link(feature.properties['UL_NAZWA1'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['UL_NAZWA2'] !== null ? autolinker.link(feature.properties['UL_NAZWA2'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['UL_PRZEDR1'] !== null ? autolinker.link(feature.properties['UL_PRZEDR1'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['UL_PRZEDR2'] !== null ? autolinker.link(feature.properties['UL_PRZEDR2'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_RUCH_PIESZY_5_0() {
+            return {
+                pane: 'pane_RUCH_PIESZY_5',
+                opacity: 1,
+                color: 'rgba(83,83,83,1.0)',
+                dashArray: '',
+                lineCap: 'round',
+                lineJoin: 'round',
+                weight: 1.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_RUCH_PIESZY_5');
+        map.getPane('pane_RUCH_PIESZY_5').style.zIndex = 405;
+        map.getPane('pane_RUCH_PIESZY_5').style['mix-blend-mode'] = 'normal';
+        var layer_RUCH_PIESZY_5 = new L.geoJson(json_RUCH_PIESZY_5, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_RUCH_PIESZY_5',
+            layerName: 'layer_RUCH_PIESZY_5',
+            pane: 'pane_RUCH_PIESZY_5',
+            onEachFeature: pop_RUCH_PIESZY_5,
+            style: style_RUCH_PIESZY_5_0,
+        });
+        bounds_group.addLayer(layer_RUCH_PIESZY_5);
+        map.addLayer(layer_RUCH_PIESZY_5);
+        function pop_DROGA_6(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['X_KOD'] !== null ? autolinker.link(feature.properties['X_KOD'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['KATZARZ'] !== null ? autolinker.link(feature.properties['KATZARZ'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['KLASADROGI'] !== null ? autolinker.link(feature.properties['KLASADROGI'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_DROGA_6_0() {
+            return {
+                pane: 'pane_DROGA_6',
+                opacity: 1,
+                color: 'rgba(126,15,104,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_DROGA_6');
+        map.getPane('pane_DROGA_6').style.zIndex = 406;
+        map.getPane('pane_DROGA_6').style['mix-blend-mode'] = 'normal';
+        var layer_DROGA_6 = new L.geoJson(json_DROGA_6, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_DROGA_6',
+            layerName: 'layer_DROGA_6',
+            pane: 'pane_DROGA_6',
+            onEachFeature: pop_DROGA_6,
+            style: style_DROGA_6_0,
+        });
+        bounds_group.addLayer(layer_DROGA_6);
+        map.addLayer(layer_DROGA_6);
+        function pop_miejscaniebezpieczne_7(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['globalid'] !== null ? autolinker.link(feature.properties['globalid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ocena_wska'] !== null ? autolinker.link(feature.properties['ocena_wska'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['ocena_ws_1'] !== null ? autolinker.link(feature.properties['ocena_ws_1'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['inne'] !== null ? autolinker.link(feature.properties['inne'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['parentglob'] !== null ? autolinker.link(feature.properties['parentglob'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['CreationDa'] !== null ? autolinker.link(feature.properties['CreationDa'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Creator'] !== null ? autolinker.link(feature.properties['Creator'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['EditDate'] !== null ? autolinker.link(feature.properties['EditDate'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['Editor'] !== null ? autolinker.link(feature.properties['Editor'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            layer.bindPopup(popupContent, {maxHeight: 400});
+        }
+
+        function style_miejscaniebezpieczne_7_0() {
+            return {
+                pane: 'pane_miejscaniebezpieczne_7',
+                radius: 4.0,
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(225,89,137,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_miejscaniebezpieczne_7');
+        map.getPane('pane_miejscaniebezpieczne_7').style.zIndex = 407;
+        map.getPane('pane_miejscaniebezpieczne_7').style['mix-blend-mode'] = 'normal';
+        var layer_miejscaniebezpieczne_7 = new L.geoJson(json_miejscaniebezpieczne_7, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_miejscaniebezpieczne_7',
+            layerName: 'layer_miejscaniebezpieczne_7',
+            pane: 'pane_miejscaniebezpieczne_7',
+            onEachFeature: pop_miejscaniebezpieczne_7,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.circleMarker(latlng, style_miejscaniebezpieczne_7_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_miejscaniebezpieczne_7);
+        map.addLayer(layer_miejscaniebezpieczne_7);
+        setBounds();
+		
+		var baseMaps = {};
+        L.control.layers(baseMaps, {
+            '<img src="legend/miejscaniebezpieczne_7.png" /> Miejsca niebezpieczne': layer_miejscaniebezpieczne_7,
+			'<img src="legend/DROGA_6.png" /> Drogi': layer_DROGA_6,
+			'<img src="legend/TORY_4.png" /> Tory lub zespół torów': layer_TORY_4,
+			'<img src="legend/RUCH_PIESZY_5.png" /> Ciąg ruchu pieszego i rowerowego': layer_RUCH_PIESZY_5,
+			'<img src="legend/OSIEDLA_3.png" /> Granice osiedli': layer_OSIEDLA_3,
+			'<img src="legend/WROCLAW_1.png" /> Granice miasta Wrocław': layer_WROCLAW_1,
+			'Pokrycie terenu<br /><table><tr><td style="text-align: center;"><img src="legend/CLC_2_zabudowamiejskazwarta0.png" /></td><td>Zabudowa miejska zwarta</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_zabudowamiejskaluźna1.png" /></td><td>Zabudowa miejska luźna</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_terenyprzemysowelubhandlowe2.png" /></td><td>Tereny przemysłowe lub handlowe</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_terenykomunikacyjneizwiązanezkomunikacjądrogowąikolejową3.png" /></td><td>Tereny komunikacyjne</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_porty4.png" /></td><td>Porty</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_lotniska5.png" /></td><td>Lotniska</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_budowy6.png" /></td><td>Budowy</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_terenyzielone7.png" /></td><td>Tereny zielone</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_terenysportoweiwypoczynkowe8.png" /></td><td>Tereny sportowe i wypoczynkowe</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_gruntyornepozazasięgiemurządzeńnawadniających9.png" /></td><td>Grunty orne poza zasięgiem urządzeń nawadniających</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_sadyiplantacje10.png" /></td><td>Sady i plantacje</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_łąkipastwiska11.png" /></td><td>Łąki i pastwiska</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_złożonesystemyuprawidziałek12.png" /></td><td>Złożone systemy upraw i działek</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_terenyzajętegłównieprzezrolnictwozdużymudziałemroślinnościnaturalnej13.png" /></td><td>Tereny zajęte głównie przez rolnictwo</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_lasyliściaste14.png" /></td><td>Lasy liściaste</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_lasyiglaste16.png" /></td><td>Lasy iglaste</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_lasymieszane15.png" /></td><td>Lasy mieszane</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_lasyiroślinnośćkrzewiastawstaniezmian17.png" /></td><td>Lasy i roślinność krzewiasta w stanie zmian</td></tr><tr><td style="text-align: center;"><img src="legend/CLC_2_cieki18.png" /></td><td>Cieki</td></tr></table>': layer_CLC_2,
+            "Open Street Map": layer_OSMStandard_0,
+        }).addTo(map);
+        setBounds();
+		
+        </script>
+    </body>
+</html>
